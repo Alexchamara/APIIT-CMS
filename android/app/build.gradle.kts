@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.example.apiit_cms"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.11902837"
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
