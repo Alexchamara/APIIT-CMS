@@ -1,5 +1,6 @@
 import 'package:apiit_cms/features/reservations/domain/models/reservation_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:apiit_cms/shared/services/notification_service.dart';
 
 class ReservationRepository {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,6 +16,9 @@ class ReservationRepository {
         updatedAt: DateTime.now(),
       );
       await docRef.set(newReservation.toMap());
+      
+      // Send notification to admins
+      NotificationService.notifyAdminsAboutNewReservation(newReservation);
     } catch (e) {
       throw Exception('Failed to create reservation: $e');
     }
@@ -104,6 +108,9 @@ class ReservationRepository {
           .collection(_collection)
           .doc(reservation.id)
           .update(updatedReservation.toMap());
+      
+      // Send notification to admins
+      NotificationService.notifyAdminsAboutReservationUpdate(updatedReservation);
     } catch (e) {
       throw Exception('Failed to update reservation: $e');
     }
