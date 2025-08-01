@@ -1,4 +1,5 @@
 import 'package:apiit_cms/features/class/domain/models/class_model.dart';
+import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/shared/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -6,12 +7,16 @@ class ClassroomCard extends StatelessWidget {
   final ClassroomModel classroomModel;
   final VoidCallback onDelete;
   final VoidCallback onToggleAvailability;
+  final VoidCallback onEdit;
+  final UserModel? currentUser;
 
   const ClassroomCard({
     super.key,
     required this.classroomModel,
     required this.onDelete,
     required this.onToggleAvailability,
+    required this.onEdit,
+    this.currentUser,
   });
 
   @override
@@ -120,6 +125,18 @@ class ClassroomCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  // Edit button (admin only)
+                  if (currentUser?.userType == UserType.admin) ...[
+                    TextButton.icon(
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   TextButton.icon(
                     onPressed: onToggleAvailability,
                     icon: Icon(
@@ -130,15 +147,18 @@ class ClassroomCard extends StatelessWidget {
                       foregroundColor: classroomModel.isAvailable ? Colors.orange : Colors.green,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
+                  // Delete button (admin only)
+                  if (currentUser?.userType == UserType.admin) ...[
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete),
+                      label: const Text('Delete'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
@@ -243,8 +263,6 @@ class ClassroomCard extends StatelessWidget {
         return Colors.green;
       case ClassroomType.auditorium:
         return Colors.purple;
-      default:
-        return Colors.grey;
     }
   }
 

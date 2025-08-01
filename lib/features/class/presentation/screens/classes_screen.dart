@@ -1,7 +1,10 @@
 import 'package:apiit_cms/features/class/data/class_repository.dart';
 import 'package:apiit_cms/features/class/domain/models/class_model.dart';
 import 'package:apiit_cms/features/class/presentation/screens/add_class_screen.dart';
+import 'package:apiit_cms/features/class/presentation/screens/edit_classroom_screen.dart';
 import 'package:apiit_cms/features/class/presentation/widgets/classroom_card.dart';
+import 'package:apiit_cms/features/auth/data/auth_repository.dart';
+import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/shared/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -16,14 +19,29 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<ClassroomModel> _allClassrooms = [];
   List<ClassroomModel> _filteredClassrooms = [];
+  UserModel? _currentUser;
   bool _isLoading = true;
   String _errorMessage = '';
+
+  bool get _isAdmin => _currentUser?.userType == UserType.admin;
 
   @override
   void initState() {
     super.initState();
-    _loadClassrooms();
+    _loadData();
     _searchController.addListener(_filterClassrooms);
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadCurrentUser(),
+      _loadClassrooms(),
+    ]);
+  }
+
+  Future<void> _loadCurrentUser() async {
+    _currentUser = await AuthRepository.getCurrentUserModel();
+    if (mounted) setState(() {});
   }
 
   @override
@@ -123,6 +141,20 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
           );
         }
       }
+    }
+  }
+
+  Future<void> _editClassroom(ClassroomModel classroomModel) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditClassroomScreen(classroom: classroomModel),
+      ),
+    );
+    
+    // If the edit was successful, reload the classrooms
+    if (result == true) {
+      await _loadClassrooms();
     }
   }
 
@@ -259,6 +291,8 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
                                   classroomModel: classroomModel,
                                   onDelete: () => _deleteClassroom(classroomModel),
                                   onToggleAvailability: () => _toggleAvailability(classroomModel),
+                                  onEdit: () => _editClassroom(classroomModel),
+                                  currentUser: _currentUser,
                                 );
                               },
                             ),
@@ -266,11 +300,11 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _isAdmin ? FloatingActionButton(
         onPressed: _navigateToAddClassroom,
         tooltip: 'Add New Classroom',
         child: const Icon(Icons.add),
-      ),
+      ) : null,
     );
   }
 }

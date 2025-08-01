@@ -2,6 +2,7 @@ import 'package:apiit_cms/features/auth/data/auth_repository.dart';
 import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/class/presentation/screens/classes_screen.dart';
 import 'package:apiit_cms/features/reservations/presentation/screens/reservations_screen.dart';
+import 'package:apiit_cms/features/support/presentation/screens/support_tickets_screen.dart';
 import 'package:apiit_cms/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apiit_cms/features/users/presentation/screens/user_management_screen.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +40,7 @@ class _MainNavigationState extends State<MainNavigation> {
       return [
         const ReservationsScreen(),
         const ClassroomsScreen(),
+        const SupportTicketsScreen(),
         const UserManagementScreen(),
         const ProfileScreen(),
       ];
@@ -46,6 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
       return [
         const ReservationsScreen(),
         const ClassroomsScreen(),
+        const SupportTicketsScreen(),
         const ProfileScreen(),
       ];
     }
@@ -58,6 +61,10 @@ class _MainNavigationState extends State<MainNavigation> {
         label: 'Reservations',
       ),
       const NavigationDestination(icon: Icon(Icons.desk), label: 'Classrooms'),
+      const NavigationDestination(
+        icon: Icon(Icons.support_agent_outlined),
+        label: 'Support',
+      ),
     ];
 
     if (_isAdmin) {
