@@ -1,6 +1,9 @@
+import 'package:apiit_cms/features/auth/data/auth_repository.dart';
+import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/class/data/class_repository.dart';
 import 'package:apiit_cms/features/class/domain/models/class_model.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,10 +24,32 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
 
   ClassroomType _selectedType = ClassroomType.classroom;
   bool _isAvailable = true;
-  List<DateTime> _blackoutDays = [];
+  final List<DateTime> _blackoutDays = [];
   DateTime? _maintenanceStart;
   DateTime? _maintenanceEnd;
   bool _isLoading = false;
+  UserModel? _currentUser;
+  bool _isLoadingUser = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    try {
+      _currentUser = await AuthRepository.getCurrentUserModel();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingUser = false;
+        });
+      }
+    }
+  }
+
+  bool get _isAdmin => _currentUser?.userType == UserType.admin;
 
   @override
   void dispose() {
@@ -58,13 +83,17 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
         updatedAt: DateTime.now(),
       );
 
-      final createdClassroom = await ClassroomRepository.createClassroom(newClassroom);
-      
+      final createdClassroom = await ClassroomRepository.createClassroom(
+        newClassroom,
+      );
+
       if (mounted) {
         Navigator.of(context).pop(createdClassroom);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Classroom "${createdClassroom.roomName}" created successfully!'),
+            content: Text(
+              'Classroom "${createdClassroom.roomName}" created successfully!',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -120,12 +149,53 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while determining user role
+    if (_isLoadingUser) {
+      return const Scaffold(
+        backgroundColor: AppTheme.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppTheme.primary),
+              SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show access denied screen if user is not admin
+    if (!_isAdmin) {
+      return Scaffold(
+        backgroundColor: AppTheme.white,
+        appBar: AppBarStyles.primary(title: 'Access Denied'),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock, size: 64, color: AppTheme.grey),
+              SizedBox(height: 16),
+              Text('Access Denied', style: AppTheme.headlineMedium),
+              SizedBox(height: 8),
+              Text(
+                'Only administrators can add new classrooms.',
+                style: AppTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add New Classroom'),
-        backgroundColor: AppTheme.primary,
-        foregroundColor: AppTheme.white,
-        elevation: 0,
+      appBar: AppBarStyles.primary(
+        title: 'Add New Classroom',
         actions: [
           if (_isLoading)
             const Padding(
@@ -133,7 +203,10 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
               child: SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
+                ),
               ),
             ),
         ],
@@ -152,12 +225,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Basic Information',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('Basic Information', style: AppTheme.titleLarge),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _roomNameController,
@@ -227,7 +295,9 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                           border: OutlineInputBorder(),
                         ),
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Capacity is required';
@@ -253,12 +323,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Operating Hours',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('Operating Hours', style: AppTheme.titleLarge),
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _openingHourController,
@@ -270,7 +335,9 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                           suffixText: ':00',
                         ),
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Opening hour is required';
@@ -293,7 +360,9 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                           suffixText: ':00',
                         ),
                         keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Closing hour is required';
@@ -302,7 +371,9 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                           if (hour == null || hour < 0 || hour > 23) {
                             return 'Enter hour 0-23';
                           }
-                          final openingHour = int.tryParse(_openingHourController.text);
+                          final openingHour = int.tryParse(
+                            _openingHourController.text,
+                          );
                           if (openingHour != null && hour <= openingHour) {
                             return 'Must be later than opening hour';
                           }
@@ -323,18 +394,16 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Settings',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('Settings', style: AppTheme.titleLarge),
                       const SizedBox(height: 8),
                       SwitchListTile(
                         title: const Text('Available'),
-                        subtitle: const Text('Is this classroom available for booking?'),
+                        subtitle: const Text(
+                          'Is this classroom available for booking?',
+                        ),
                         value: _isAvailable,
-                        onChanged: (value) => setState(() => _isAvailable = value),
+                        onChanged: (value) =>
+                            setState(() => _isAvailable = value),
                         secondary: const Icon(Icons.visibility),
                       ),
                     ],
@@ -355,12 +424,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                         children: [
                           const Icon(Icons.event_busy),
                           const SizedBox(width: 8),
-                          Text(
-                            'Blackout Days',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('Blackout Days', style: AppTheme.titleLarge),
                           const Spacer(),
                           OutlinedButton.icon(
                             onPressed: _selectBlackoutDay,
@@ -388,7 +452,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                       ] else
                         Text(
                           'No blackout days set',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: AppTheme.bodyLarge.copyWith(
                             color: Colors.grey[600],
                           ),
                         ),
@@ -410,12 +474,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                         children: [
                           const Icon(Icons.build),
                           const SizedBox(width: 8),
-                          Text(
-                            'Maintenance',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('Maintenance', style: AppTheme.titleLarge),
                           const Spacer(),
                           OutlinedButton.icon(
                             onPressed: _selectMaintenancePeriod,
@@ -425,7 +484,8 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      if (_maintenanceStart != null && _maintenanceEnd != null) ...[
+                      if (_maintenanceStart != null &&
+                          _maintenanceEnd != null) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -435,7 +495,11 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.schedule, color: Colors.orange[700], size: 20),
+                              Icon(
+                                Icons.schedule,
+                                color: Colors.orange[700],
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -453,7 +517,11 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                                     _maintenanceEnd = null;
                                   });
                                 },
-                                icon: Icon(Icons.close, color: Colors.orange[700], size: 20),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.orange[700],
+                                  size: 20,
+                                ),
                                 padding: EdgeInsets.zero,
                                 constraints: const BoxConstraints(),
                               ),
@@ -463,7 +531,7 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
                       ] else
                         Text(
                           'No maintenance period scheduled',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: AppTheme.bodyLarge.copyWith(
                             color: Colors.grey[600],
                           ),
                         ),
@@ -494,7 +562,9 @@ class _AddClassroomScreenState extends State<AddClassroomScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _isLoading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   child: const Text('Cancel'),
                 ),
               ),

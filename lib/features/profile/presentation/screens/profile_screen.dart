@@ -4,6 +4,7 @@ import 'package:apiit_cms/features/profile/presentation/cubit/profile_state.dart
 import 'package:apiit_cms/features/users/data/repositories/user_repository_impl.dart';
 import 'package:apiit_cms/features/users/domain/usecases/user_usecases.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -101,20 +102,13 @@ class _ProfileViewState extends State<ProfileView> {
 
           return Scaffold(
             backgroundColor: AppTheme.white,
-            appBar: AppBar(
-              backgroundColor: AppTheme.white,
-              elevation: 0,
-              title: Text(
-                _isEditing ? 'Edit Profile' : 'My Profile',
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            appBar: AppBarStyles.primary(
+              title: _isEditing ? 'Edit Profile' : 'My Profile',
+              showBackButton: false,
               actions: [
                 if (!_isEditing && currentUser != null)
                   IconButton(
-                    icon: const Icon(Icons.edit, color: AppTheme.primary),
+                    icon: const Icon(Icons.edit, color: AppTheme.white),
                     onPressed: () {
                       setState(() {
                         _isEditing = true;

@@ -4,6 +4,7 @@ import 'package:apiit_cms/features/users/domain/usecases/user_usecases.dart';
 import 'package:apiit_cms/features/users/presentation/cubit/user_edit_cubit.dart';
 import 'package:apiit_cms/features/users/presentation/cubit/user_edit_state.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -92,24 +93,12 @@ class _UserEditViewState extends State<UserEditView> {
       },
       child: Scaffold(
         backgroundColor: AppTheme.white,
-        appBar: AppBar(
-          backgroundColor: AppTheme.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: Text(
-            _isEditing ? 'Edit User' : 'User Details',
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+        appBar: AppBarStyles.primary(
+          title: _isEditing ? 'Edit User' : 'User Details',
           actions: [
             if (!_isEditing)
               IconButton(
-                icon: const Icon(Icons.edit, color: AppTheme.primary),
+                icon: const Icon(Icons.edit, color: AppTheme.white),
                 onPressed: () {
                   setState(() {
                     _isEditing = true;

@@ -9,6 +9,7 @@ import 'package:apiit_cms/features/users/presentation/screens/add_user_screen.da
 import 'package:apiit_cms/features/users/presentation/screens/user_edit_screen.dart';
 import 'package:apiit_cms/features/users/presentation/widgets/user_list_item.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -42,6 +43,7 @@ class UserManagementView extends StatefulWidget {
 class _UserManagementViewState extends State<UserManagementView> {
   final TextEditingController _searchController = TextEditingController();
   UserModel? _currentUser;
+  bool _isLoadingUser = true;
 
   @override
   void initState() {
@@ -50,8 +52,15 @@ class _UserManagementViewState extends State<UserManagementView> {
   }
 
   Future<void> _loadCurrentUser() async {
-    _currentUser = await AuthRepository.getCurrentUserModel();
-    setState(() {});
+    try {
+      _currentUser = await AuthRepository.getCurrentUserModel();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingUser = false;
+        });
+      }
+    }
   }
 
   @override
@@ -64,8 +73,30 @@ class _UserManagementViewState extends State<UserManagementView> {
 
   @override
   Widget build(BuildContext context) {
+    // Show loading screen while determining user role
+    if (_isLoadingUser) {
+      return const Scaffold(
+        backgroundColor: AppTheme.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppTheme.primary),
+              SizedBox(height: 16),
+              Text(
+                'Loading...',
+                style: TextStyle(fontSize: 16, color: AppTheme.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Show access denied screen if user is not admin
     if (!_isAdmin) {
       return const Scaffold(
+        backgroundColor: AppTheme.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -87,11 +118,14 @@ class _UserManagementViewState extends State<UserManagementView> {
 
     return Scaffold(
       backgroundColor: AppTheme.white,
+      appBar: AppBarStyles.primary(
+        title: 'User Management',
+        showBackButton: false,
+      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
             _buildSearchBar(),
             _buildFilterTabs(),
             Expanded(child: _buildUsersList()),
@@ -108,23 +142,9 @@ class _UserManagementViewState extends State<UserManagementView> {
     );
   }
 
-  Widget _buildHeader() {
-    return const Padding(
-      padding: EdgeInsets.all(24.0),
-      child: Text(
-        'Users',
-        style: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppTheme.textPrimary,
-        ),
-      ),
-    );
-  }
-
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.all(16.0),
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
@@ -156,7 +176,7 @@ class _UserManagementViewState extends State<UserManagementView> {
             : UserFilter.admins;
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             children: [
               _buildFilterChip(

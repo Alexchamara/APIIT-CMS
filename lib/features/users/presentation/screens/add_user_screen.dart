@@ -4,6 +4,7 @@ import 'package:apiit_cms/features/users/domain/usecases/user_usecases.dart';
 import 'package:apiit_cms/features/users/presentation/cubit/add_user_cubit.dart';
 import 'package:apiit_cms/features/users/presentation/cubit/add_user_state.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -67,21 +68,7 @@ class _AddUserViewState extends State<AddUserView> {
       },
       child: Scaffold(
         backgroundColor: AppTheme.white,
-        appBar: AppBar(
-          backgroundColor: AppTheme.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          title: const Text(
-            'Add New User',
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
+        appBar: AppBarStyles.primary(title: 'Add New User'),
         body: BlocBuilder<AddUserCubit, AddUserState>(
           builder: (context, state) {
             final isLoading = state is AddUserLoading;

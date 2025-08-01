@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 
 class ClassroomCard extends StatelessWidget {
   final ClassroomModel classroomModel;
+  final bool isAdmin;
   final VoidCallback onDelete;
   final VoidCallback onToggleAvailability;
 
   const ClassroomCard({
     super.key,
     required this.classroomModel,
+    required this.isAdmin,
     required this.onDelete,
     required this.onToggleAvailability,
   });
@@ -19,9 +21,7 @@ class ClassroomCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8.0),
       elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
         onTap: () => _showClassroomDetails(context),
@@ -47,7 +47,7 @@ class ClassroomCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 10),
-                  
+
                   // Room Name and Floor
                   Expanded(
                     child: Column(
@@ -55,92 +55,103 @@ class ClassroomCard extends StatelessWidget {
                       children: [
                         Text(
                           classroomModel.roomName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.titleLarge,
                         ),
                         Text(
                           'Floor ${classroomModel.floor}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                          style: AppTheme.bodyMedium,
                         ),
                       ],
                     ),
                   ),
-                  
+
                   // Status Chip
                   _buildStatusChip(),
                 ],
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Classroom Details with gray background
-              Row(
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
                 children: [
                   _buildInfoChip(
                     icon: Icons.people,
                     label: '${classroomModel.capacity} seats',
                   ),
-                  const SizedBox(width: 6),
-                  _buildInfoChip(
-                    icon: Icons.category,
-                    label: _getTypeLabel(),
-                  ),
-                  const SizedBox(width: 6),
+                  _buildInfoChip(icon: Icons.category, label: _getTypeLabel()),
                   _buildInfoChip(
                     icon: Icons.access_time,
                     label: classroomModel.operatingHours,
                   ),
                 ],
               ),
-              
+
               if (classroomModel.isUnderMaintenance) ...[
                 const SizedBox(height: 6),
-                _buildInfoChip(
-                  icon: Icons.build,
-                  label: 'Maintenance',
-                ),
+                _buildInfoChip(icon: Icons.build, label: 'Maintenance'),
               ],
-              
+
               if (classroomModel.blackoutDays.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
                   '${classroomModel.blackoutDays.length} blackout day(s)',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.red[600],
-                  ),
+                  style: AppTheme.bodyMedium.copyWith(color: Colors.red[600]),
                 ),
               ],
-              
+
               const SizedBox(height: 10),
-              
-              // Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: onToggleAvailability,
-                    icon: Icon(
-                      classroomModel.isAvailable ? Icons.visibility_off : Icons.visibility,
+
+              // Action Buttons - Only show for admins
+              if (isAdmin) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton.icon(
+                      onPressed: onToggleAvailability,
+                      icon: Icon(
+                        classroomModel.isAvailable
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      label: Text(
+                        classroomModel.isAvailable
+                            ? 'unavailable'
+                            : 'available',
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: classroomModel.isAvailable
+                            ? Colors.orange
+                            : Colors.green,
+                      ),
                     ),
-                    label: Text(classroomModel.isAvailable ? 'unavailable' : 'available'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: classroomModel.isAvailable ? Colors.orange : Colors.green,
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: onDelete,
+                      icon: const Icon(Icons.delete),
+                      label: const Text('Delete'),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: onDelete,
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Delete'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
+                  ],
+                ),
+              ] else ...[
+                // For non-admin users, show view-only message
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      'View Only',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
@@ -172,22 +183,21 @@ class ClassroomCard extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 3),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+            style: AppTheme.bodyMedium.copyWith(
               color: color,
-              fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -196,26 +206,22 @@ class ClassroomCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoChip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _buildInfoChip({required IconData icon, required String label}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Colors.grey[700]),
-          const SizedBox(width: 3),
+          Icon(icon, size: 14, color: Colors.grey[700]),
+          const SizedBox(width: 4),
           Text(
             label,
-            style: TextStyle(
+            style: AppTheme.bodyMedium.copyWith(
               color: Colors.grey[700],
-              fontSize: 10,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -243,8 +249,6 @@ class ClassroomCard extends StatelessWidget {
         return Colors.green;
       case ClassroomType.auditorium:
         return Colors.purple;
-      default:
-        return Colors.grey;
     }
   }
 
@@ -289,7 +293,7 @@ class ClassroomCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Title
                 Row(
                   children: [
@@ -301,13 +305,11 @@ class ClassroomCard extends StatelessWidget {
                         children: [
                           Text(
                             classroomModel.roomName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: AppTheme.headlineMedium,
                           ),
                           Text(
                             'Floor ${classroomModel.floor} • ${_getTypeLabel()}',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            style: AppTheme.bodyLarge.copyWith(
                               color: Colors.grey[600],
                             ),
                           ),
@@ -316,44 +318,67 @@ class ClassroomCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Details
                 Expanded(
                   child: ListView(
                     controller: scrollController,
                     children: [
-                      _buildDetailRow('Capacity', '${classroomModel.capacity} seats'),
-                      _buildDetailRow('Operating Hours', classroomModel.operatingHours),
-                      _buildDetailRow('Availability', classroomModel.isAvailable ? 'Available' : 'Unavailable'),
-                      
+                      _buildDetailRow(
+                        'Capacity',
+                        '${classroomModel.capacity} seats',
+                      ),
+                      _buildDetailRow(
+                        'Operating Hours',
+                        classroomModel.operatingHours,
+                      ),
+                      _buildDetailRow(
+                        'Availability',
+                        classroomModel.isAvailable
+                            ? 'Available'
+                            : 'Unavailable',
+                      ),
+
                       if (classroomModel.isUnderMaintenance) ...[
                         _buildDetailRow('Status', 'Under Maintenance'),
                         if (classroomModel.maintenanceStart != null)
-                          _buildDetailRow('Maintenance Start', _formatTime(classroomModel.maintenanceStart!)),
+                          _buildDetailRow(
+                            'Maintenance Start',
+                            _formatTime(classroomModel.maintenanceStart!),
+                          ),
                         if (classroomModel.maintenanceEnd != null)
-                          _buildDetailRow('Maintenance End', _formatTime(classroomModel.maintenanceEnd!)),
+                          _buildDetailRow(
+                            'Maintenance End',
+                            _formatTime(classroomModel.maintenanceEnd!),
+                          ),
                       ],
-                      
+
                       if (classroomModel.blackoutDays.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        Text(
-                          'Blackout Days',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                        Text('Blackout Days', style: AppTheme.titleLarge),
+                        const SizedBox(height: 8),
+                        ...classroomModel.blackoutDays.map(
+                          (date) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${_formatDate(date)}',
+                              style: AppTheme.bodyLarge,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        ...classroomModel.blackoutDays.map((date) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text('• ${_formatDate(date)}'),
-                        )),
                       ],
-                      
+
                       const SizedBox(height: 16),
-                      _buildDetailRow('Created', _formatDate(classroomModel.createdAt)),
-                      _buildDetailRow('Last Updated', _formatDate(classroomModel.updatedAt)),
+                      _buildDetailRow(
+                        'Created',
+                        _formatDate(classroomModel.createdAt),
+                      ),
+                      _buildDetailRow(
+                        'Last Updated',
+                        _formatDate(classroomModel.updatedAt),
+                      ),
                     ],
                   ),
                 ),
@@ -372,23 +397,19 @@ class ClassroomCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 120,
             child: Text(
               label,
-              style: const TextStyle(
+              style: AppTheme.bodyMedium.copyWith(
                 fontWeight: FontWeight.w500,
-                color: Colors.grey,
-                fontSize: 12,
+                color: Colors.grey[600],
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
+              style: AppTheme.bodyLarge,
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),

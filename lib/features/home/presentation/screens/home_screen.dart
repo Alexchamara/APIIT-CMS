@@ -1,5 +1,6 @@
 import 'package:apiit_cms/features/auth/data/auth_repository.dart';
 import 'package:apiit_cms/shared/theme.dart';
+import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -8,10 +9,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('APIIT CMS'),
-        backgroundColor: AppTheme.primary,
-        foregroundColor: AppTheme.white,
+      appBar: AppBarStyles.primary(
+        title: 'APIIT CMS',
+        showBackButton: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
