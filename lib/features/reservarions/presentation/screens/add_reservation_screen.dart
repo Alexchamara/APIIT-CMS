@@ -40,6 +40,10 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     const TimeSlot(startTime: '15:00', endTime: '16:00'),
     const TimeSlot(startTime: '16:00', endTime: '17:00'),
     const TimeSlot(startTime: '17:00', endTime: '18:00'),
+    const TimeSlot(startTime: '18:00', endTime: '19:00'),
+    const TimeSlot(startTime: '19:00', endTime: '20:00'),
+    const TimeSlot(startTime: '20:00', endTime: '21:00'),
+    const TimeSlot(startTime: '21:00', endTime: '22:00'),
   ];
 
   @override
@@ -374,17 +378,17 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Lecturer Name
+                    // User Name
                     TextFormField(
                       controller: _lecturerNameController,
                       decoration: const InputDecoration(
-                        labelText: 'Lecturer Name',
+                        labelText: 'User Name',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.person),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Please enter lecturer name';
+                          return 'Please enter user name';
                         }
                         return null;
                       },

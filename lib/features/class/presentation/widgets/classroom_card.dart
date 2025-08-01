@@ -1,4 +1,5 @@
 import 'package:apiit_cms/features/class/domain/models/class_model.dart';
+import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/shared/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -7,6 +8,8 @@ class ClassroomCard extends StatelessWidget {
   final bool isAdmin;
   final VoidCallback onDelete;
   final VoidCallback onToggleAvailability;
+  final VoidCallback onEdit;
+  final UserModel? currentUser;
 
   const ClassroomCard({
     super.key,
@@ -14,6 +17,8 @@ class ClassroomCard extends StatelessWidget {
     required this.isAdmin,
     required this.onDelete,
     required this.onToggleAvailability,
+    required this.onEdit,
+    this.currentUser,
   });
 
   @override
@@ -104,54 +109,54 @@ class ClassroomCard extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              // Action Buttons - Only show for admins
-              if (isAdmin) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
+              // Action Buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // Edit button (admin only)
+                  if (currentUser?.userType == UserType.admin) ...[
                     TextButton.icon(
-                      onPressed: onToggleAvailability,
-                      icon: Icon(
-                        classroomModel.isAvailable
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      label: Text(
-                        classroomModel.isAvailable
-                            ? 'unavailable'
-                            : 'available',
-                      ),
+                      onPressed: onEdit,
+                      icon: const Icon(Icons.edit),
+                      label: const Text('Edit'),
                       style: TextButton.styleFrom(
-                        foregroundColor: classroomModel.isAvailable
-                            ? Colors.orange
-                            : Colors.green,
+                        foregroundColor: AppTheme.primary,
                       ),
                     ),
+                    const SizedBox(width: 8),
+                  ],
+                  TextButton.icon(
+                    onPressed: onToggleAvailability,
+                    icon: Icon(
+                      classroomModel.isAvailable
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    label: Text(
+                      classroomModel.isAvailable
+                          ? 'Make Unavailable'
+                          : 'Make Available',
+                    ),
+                    style: TextButton.styleFrom(
+                      foregroundColor: classroomModel.isAvailable
+                          ? Colors.orange
+                          : Colors.green,
+                    ),
+                  ),
+                  // Delete button (admin only)
+                  if (currentUser?.userType == UserType.admin) ...[
                     const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: onDelete,
                       icon: const Icon(Icons.delete),
                       label: const Text('Delete'),
-                      style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                // For non-admin users, show view-only message
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      'View Only',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                        fontStyle: FontStyle.italic,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
                       ),
                     ),
                   ],
-                ),
-              ],
+                ],
+              ),
             ],
           ),
         ),
