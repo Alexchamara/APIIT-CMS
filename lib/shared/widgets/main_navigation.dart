@@ -5,6 +5,7 @@ import 'package:apiit_cms/features/reservations/presentation/screens/reservation
 import 'package:apiit_cms/features/support/presentation/screens/support_tickets_screen.dart';
 import 'package:apiit_cms/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apiit_cms/features/users/presentation/screens/user_management_screen.dart';
+import 'package:apiit_cms/features/analytics/presentation/screens/analytics_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -41,6 +42,7 @@ class _MainNavigationState extends State<MainNavigation> {
         const ReservationsScreen(),
         const ClassroomsScreen(),
         const SupportTicketsScreen(),
+        const AnalyticsScreen(),
         const UserManagementScreen(),
         const ProfileScreen(),
       ];
@@ -68,6 +70,12 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     if (_isAdmin) {
+      baseDestinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.analytics_outlined),
+          label: 'Analytics',
+        ),
+      );
       baseDestinations.add(
         const NavigationDestination(
           icon: Icon(Icons.people_alt_outlined),
