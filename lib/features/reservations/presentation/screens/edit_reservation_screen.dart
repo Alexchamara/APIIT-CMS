@@ -1,24 +1,27 @@
-import 'package:apiit_cms/features/auth/data/auth_repository.dart';
 import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/class/data/class_repository.dart';
 import 'package:apiit_cms/features/class/domain/models/class_model.dart';
 import 'package:apiit_cms/features/reservations/data/reservation_repository.dart';
 import 'package:apiit_cms/features/reservations/domain/models/reservation_model.dart';
+import 'package:apiit_cms/features/users/data/repositories/user_repository_impl.dart';
 import 'package:apiit_cms/shared/theme.dart';
 import 'package:apiit_cms/shared/widgets/user_dropdown_search.dart';
 import 'package:flutter/material.dart';
 
-class AddReservationScreen extends StatefulWidget {
-  const AddReservationScreen({super.key});
+class EditReservationScreen extends StatefulWidget {
+  final ReservationModel reservation;
+
+  const EditReservationScreen({super.key, required this.reservation});
 
   @override
-  State<AddReservationScreen> createState() => _AddReservationScreenState();
+  State<EditReservationScreen> createState() => _EditReservationScreenState();
 }
 
-class _AddReservationScreenState extends State<AddReservationScreen> {
+class _EditReservationScreenState extends State<EditReservationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _classroomSearchController = TextEditingController();
+  final UserRepositoryImpl _userRepository = UserRepositoryImpl();
 
   UserModel? _selectedUser;
   ReservationType _selectedType = ReservationType.lecture;
@@ -52,8 +55,9 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeForm();
     _loadClassrooms();
-    _loadCurrentUser();
+    _loadUser();
     _classroomSearchController.addListener(_filterClassrooms);
   }
 
@@ -64,11 +68,44 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCurrentUser() async {
-    final user = await AuthRepository.getCurrentUserModel();
-    if (user != null) {
+  void _initializeForm() {
+    // Initialize form with existing reservation data
+    _selectedType = widget.reservation.type;
+    _selectedDate = widget.reservation.date;
+    _selectedTimeSlots.addAll(widget.reservation.timeSlots);
+    _descriptionController.text = widget.reservation.description ?? '';
+  }
+
+  Future<void> _loadUser() async {
+    try {
+      // Find the user for this reservation
+      final allUsers = await _userRepository.getAllUsers();
+      final reservationUser = allUsers.firstWhere(
+        (user) => user.uid == widget.reservation.lecturerId,
+        orElse: () => UserModel(
+          uid: widget.reservation.lecturerId,
+          email: '',
+          displayName: widget.reservation.lecturerName,
+          userType: UserType.lecturer,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+
       setState(() {
-        _selectedUser = user;
+        _selectedUser = reservationUser;
+      });
+    } catch (e) {
+      // If we can't find the user, create a temporary one with the existing data
+      setState(() {
+        _selectedUser = UserModel(
+          uid: widget.reservation.lecturerId,
+          email: '',
+          displayName: widget.reservation.lecturerName,
+          userType: UserType.lecturer,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
       });
     }
   }
@@ -83,8 +120,31 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
             .where((classroom) => classroom.isAvailable)
             .toList();
         _filteredClassrooms = _availableClassrooms;
+
+        // Find and set the selected classroom
+        try {
+          _selectedClassroom = _availableClassrooms.firstWhere(
+            (classroom) => classroom.id == widget.reservation.classroomId,
+          );
+        } catch (e) {
+          // If classroom not found, create a dummy one
+          _selectedClassroom = ClassroomModel(
+            id: widget.reservation.classroomId,
+            roomName: widget.reservation.classroomName,
+            floor: 'Unknown',
+            capacity: 0,
+            type: ClassroomType.classroom,
+            isAvailable: true,
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+        }
+
         _isLoadingClassrooms = false;
       });
+
+      // Check for conflicts after loading classrooms
+      _checkTimeSlotConflicts();
     } catch (e) {
       setState(() => _isLoadingClassrooms = false);
       if (mounted) {
@@ -195,6 +255,8 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
         _selectedClassroom!.id,
         _selectedDate,
         _availableTimeSlots,
+        excludeReservationId:
+            widget.reservation.id, // Exclude current reservation
       );
 
       // Collect all conflicted time slots
@@ -404,11 +466,12 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Check for conflicts
+      // Check for conflicts (excluding the current reservation)
       final conflicts = await ReservationRepository.checkConflicts(
         _selectedClassroom!.id,
         _selectedDate,
         _selectedTimeSlots,
+        excludeReservationId: widget.reservation.id,
       );
 
       if (conflicts.isNotEmpty) {
@@ -426,18 +489,9 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
         return;
       }
 
-      final currentUser = await AuthRepository.getCurrentUserModel();
-      if (currentUser == null) {
-        throw Exception('User not found');
-      }
-
-      // Use selected user (which is guaranteed to be not null due to validation above)
-      final reservingUser = _selectedUser!;
-
-      final newReservation = ReservationModel(
-        id: '', // Will be set by repository
-        lecturerId: reservingUser.uid,
-        lecturerName: reservingUser.displayName,
+      final updatedReservation = widget.reservation.copyWith(
+        lecturerId: _selectedUser!.uid,
+        lecturerName: _selectedUser!.displayName,
         classroomId: _selectedClassroom!.id,
         classroomName: _selectedClassroom!.roomName,
         date: _selectedDate,
@@ -446,22 +500,21 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
         description: _descriptionController.text.trim().isNotEmpty
             ? _descriptionController.text.trim()
             : null,
-        createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      await ReservationRepository.createReservation(newReservation);
+      await ReservationRepository.updateReservation(updatedReservation);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Reservation created successfully')),
+          const SnackBar(content: Text('Reservation updated successfully')),
         );
         Navigator.of(context).pop(true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error creating reservation: $e')),
+          SnackBar(content: Text('Error updating reservation: $e')),
         );
       }
     } finally {
@@ -473,7 +526,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add New Reservation'),
+        title: const Text('Edit Reservation'),
         backgroundColor: AppTheme.primary,
         foregroundColor: AppTheme.white,
         elevation: 0,
@@ -518,7 +571,12 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
                         UserType.lecturer,
                         UserType.admin,
                       ],
-                      // Remove the validator since we handle user validation separately
+                      validator: (user) {
+                        if (user == null) {
+                          return 'Please select a user';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -779,7 +837,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text('Create Reservation'),
+                            : const Text('Update Reservation'),
                       ),
                     ),
                   ],

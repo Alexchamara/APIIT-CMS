@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:apiit_cms/features/support/domain/models/support_ticket_model.dart';
 import 'package:apiit_cms/features/auth/data/auth_repository.dart';
+import 'package:apiit_cms/shared/services/notification_service.dart';
 
 class SupportTicketRepository {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -34,6 +35,24 @@ class SupportTicketRepository {
       };
 
       final docRef = await _firestore.collection(_collection).add(ticketData);
+      
+      // Get the created ticket for notification
+      final createdTicket = SupportTicketModel(
+        ticketId: docRef.id,
+        lecturerId: currentUser.uid,
+        lecturerName: currentUser.displayName,
+        title: title,
+        description: description,
+        status: TicketStatus.pending,
+        priority: priority,
+        messages: [],
+        createdAt: now,
+        updatedAt: now,
+      );
+      
+      // Send notification to admins
+      NotificationService.notifyAdminsAboutNewTicket(createdTicket);
+      
       return docRef.id;
     } catch (e) {
       throw Exception('Failed to create ticket: $e');
@@ -131,6 +150,12 @@ class SupportTicketRepository {
         'messages': FieldValue.arrayUnion([ticketMessage.toMap()]),
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
+
+      // Get updated ticket for notification
+      final updatedTicket = await getTicketById(ticketId);
+      if (updatedTicket != null) {
+        NotificationService.notifyAdminsAboutTicketUpdate(updatedTicket);
+      }
     } catch (e) {
       throw Exception('Failed to add message: $e');
     }
@@ -146,6 +171,12 @@ class SupportTicketRepository {
         'status': status.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
+
+      // Get updated ticket for notification
+      final updatedTicket = await getTicketById(ticketId);
+      if (updatedTicket != null) {
+        NotificationService.notifyAdminsAboutTicketUpdate(updatedTicket);
+      }
     } catch (e) {
       throw Exception('Failed to update status: $e');
     }

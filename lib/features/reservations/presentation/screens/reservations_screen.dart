@@ -3,6 +3,7 @@ import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/reservations/data/reservation_repository.dart';
 import 'package:apiit_cms/features/reservations/domain/models/reservation_model.dart';
 import 'package:apiit_cms/features/reservations/presentation/screens/add_reservation_screen.dart';
+import 'package:apiit_cms/features/reservations/presentation/screens/edit_reservation_screen.dart';
 import 'package:apiit_cms/features/reservations/presentation/widgets/reservation_card.dart';
 import 'package:apiit_cms/shared/theme.dart';
 import 'package:flutter/material.dart';
@@ -57,17 +58,19 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
 
     try {
       List<ReservationModel> reservations;
-      
+
       if (_currentUser?.userType == UserType.admin) {
         // Admin can see all reservations
         reservations = await ReservationRepository.getAllReservations();
       } else if (_currentUser?.uid != null) {
         // Lecturers can only see their own reservations
-        reservations = await ReservationRepository.getReservationsByLecturer(_currentUser!.uid);
+        reservations = await ReservationRepository.getReservationsByLecturer(
+          _currentUser!.uid,
+        );
       } else {
         reservations = [];
       }
-      
+
       setState(() {
         _allReservations = reservations;
         _filteredReservations = reservations;
@@ -100,8 +103,19 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   Future<void> _navigateToAddReservation() async {
     final result = await Navigator.push(
       context,
+      MaterialPageRoute(builder: (context) => const AddReservationScreen()),
+    );
+
+    if (result == true) {
+      _loadReservations();
+    }
+  }
+
+  Future<void> _navigateToEditReservation(ReservationModel reservation) async {
+    final result = await Navigator.push(
+      context,
       MaterialPageRoute(
-        builder: (context) => const AddReservationScreen(),
+        builder: (context) => EditReservationScreen(reservation: reservation),
       ),
     );
 
@@ -115,7 +129,9 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Reservation'),
-        content: Text('Are you sure you want to delete the reservation for ${reservation.classroomName}?'),
+        content: Text(
+          'Are you sure you want to delete the reservation for ${reservation.classroomName}?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -166,7 +182,8 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search reservations by lecturer, classroom, or type...',
+                hintText:
+                    'Search reservations by lecturer, classroom, or type...',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -184,82 +201,83 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
               ),
             ),
           ),
-          
+
           // Reservations List
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _errorMessage.isNotEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.red[300],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error loading reservations',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _errorMessage,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _loadReservations,
-                              child: const Text('Retry'),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red[300],
                         ),
-                      )
-                    : _filteredReservations.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.event_note_outlined,
-                                  size: 64,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  _searchController.text.isNotEmpty
-                                      ? 'No reservations found'
-                                      : 'No reservations available',
-                                  style: Theme.of(context).textTheme.headlineSmall,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _searchController.text.isNotEmpty
-                                      ? 'Try adjusting your search terms'
-                                      : 'Add your first reservation using the + button',
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: _loadReservations,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              itemCount: _filteredReservations.length,
-                              itemBuilder: (context, index) {
-                                final reservation = _filteredReservations[index];
-                                return ReservationCard(
-                                  reservation: reservation,
-                                  onDelete: () => _deleteReservation(reservation),
-                                  currentUser: _currentUser,
-                                );
-                              },
-                            ),
-                          ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Error loading reservations',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _errorMessage,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _loadReservations,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : _filteredReservations.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.event_note_outlined,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _searchController.text.isNotEmpty
+                              ? 'No reservations found'
+                              : 'No reservations available',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _searchController.text.isNotEmpty
+                              ? 'Try adjusting your search terms'
+                              : 'Add your first reservation using the + button',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadReservations,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      itemCount: _filteredReservations.length,
+                      itemBuilder: (context, index) {
+                        final reservation = _filteredReservations[index];
+                        return ReservationCard(
+                          reservation: reservation,
+                          onDelete: () => _deleteReservation(reservation),
+                          onEdit: () => _navigateToEditReservation(reservation),
+                          currentUser: _currentUser,
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
