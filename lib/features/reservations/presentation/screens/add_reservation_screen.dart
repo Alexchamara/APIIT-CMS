@@ -380,6 +380,13 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
+    if (_selectedUser == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a user')));
+      return;
+    }
+
     if (_selectedClassroom == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a classroom')),
@@ -424,8 +431,8 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
         throw Exception('User not found');
       }
 
-      // Use selected user or fall back to current user
-      final reservingUser = _selectedUser ?? currentUser;
+      // Use selected user (which is guaranteed to be not null due to validation above)
+      final reservingUser = _selectedUser!;
 
       final newReservation = ReservationModel(
         id: '', // Will be set by repository
@@ -511,12 +518,7 @@ class _AddReservationScreenState extends State<AddReservationScreen> {
                         UserType.lecturer,
                         UserType.admin,
                       ],
-                      validator: (user) {
-                        if (user == null) {
-                          return 'Please select a user';
-                        }
-                        return null;
-                      },
+                      // Remove the validator since we handle user validation separately
                     ),
                     const SizedBox(height: 16),
 

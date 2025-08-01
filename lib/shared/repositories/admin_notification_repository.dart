@@ -12,49 +12,61 @@ class AdminNotificationRepository {
         .orderBy('createdAt', descending: true)
         .limit(100) // Limit to recent 100 notifications
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AdminNotificationModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AdminNotificationModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Get notifications by type
-  static Stream<List<AdminNotificationModel>> getNotificationsByType(String type) {
+  static Stream<List<AdminNotificationModel>> getNotificationsByType(
+    String type,
+  ) {
     return _firestore
         .collection(_collection)
         .where('data.type', isEqualTo: type)
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AdminNotificationModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AdminNotificationModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Get notifications by status
-  static Stream<List<AdminNotificationModel>> getNotificationsByStatus(String status) {
+  static Stream<List<AdminNotificationModel>> getNotificationsByStatus(
+    String status,
+  ) {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: status)
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AdminNotificationModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AdminNotificationModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Get recent notifications (last 24 hours)
   static Stream<List<AdminNotificationModel>> getRecentNotifications() {
     final yesterday = DateTime.now().subtract(const Duration(days: 1));
-    
+
     return _firestore
         .collection(_collection)
         .where('createdAt', isGreaterThan: Timestamp.fromDate(yesterday))
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AdminNotificationModel.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AdminNotificationModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Get notification statistics
@@ -62,17 +74,20 @@ class AdminNotificationRepository {
     try {
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day);
-      
+
       // Get today's notifications
       final todaySnapshot = await _firestore
           .collection(_collection)
-          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+          .where(
+            'createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+          )
           .get();
 
       final sentToday = todaySnapshot.docs
           .where((doc) => doc.data()['status'] == 'sent')
           .length;
-      
+
       final failedToday = todaySnapshot.docs
           .where((doc) => doc.data()['status'] == 'failed')
           .length;
@@ -82,10 +97,15 @@ class AdminNotificationRepository {
           .length;
 
       // Get this week's notifications
-      final startOfWeek = startOfDay.subtract(Duration(days: today.weekday - 1));
+      final startOfWeek = startOfDay.subtract(
+        Duration(days: today.weekday - 1),
+      );
       final weekSnapshot = await _firestore
           .collection(_collection)
-          .where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfWeek))
+          .where(
+            'createdAt',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfWeek),
+          )
           .get();
 
       return {
@@ -105,7 +125,7 @@ class AdminNotificationRepository {
   static Future<void> cleanupOldNotifications() async {
     try {
       final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30));
-      
+
       final oldNotifications = await _firestore
           .collection(_collection)
           .where('createdAt', isLessThan: Timestamp.fromDate(thirtyDaysAgo))

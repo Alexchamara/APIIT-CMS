@@ -5,7 +5,8 @@ class AdminNotificationModel {
   final String title;
   final String body;
   final String type; // 'support_ticket', 'reservation'
-  final String action; // 'created', 'updated', 'status_updated', 'message_added'
+  final String
+  action; // 'created', 'updated', 'status_updated', 'message_added'
   final Map<String, String> data;
   final DateTime createdAt;
   final String status; // 'pending', 'sent', 'failed'
@@ -27,7 +28,7 @@ class AdminNotificationModel {
 
   factory AdminNotificationModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return AdminNotificationModel(
       id: doc.id,
       title: data['title'] ?? '',
@@ -37,8 +38,8 @@ class AdminNotificationModel {
       data: Map<String, String>.from(data['data'] ?? {}),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       status: data['status'] ?? 'pending',
-      sentAt: data['sentAt'] != null 
-          ? (data['sentAt'] as Timestamp).toDate() 
+      sentAt: data['sentAt'] != null
+          ? (data['sentAt'] as Timestamp).toDate()
           : null,
       error: data['error'],
     );

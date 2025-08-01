@@ -7,7 +7,8 @@ class AdminNotificationsScreen extends StatefulWidget {
   const AdminNotificationsScreen({super.key});
 
   @override
-  State<AdminNotificationsScreen> createState() => _AdminNotificationsScreenState();
+  State<AdminNotificationsScreen> createState() =>
+      _AdminNotificationsScreenState();
 }
 
 class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
@@ -72,14 +73,22 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildNotificationsList(AdminNotificationRepository.getAllNotifications()),
                 _buildNotificationsList(
-                  AdminNotificationRepository.getNotificationsByType('support_ticket'),
+                  AdminNotificationRepository.getAllNotifications(),
                 ),
                 _buildNotificationsList(
-                  AdminNotificationRepository.getNotificationsByType('reservation'),
+                  AdminNotificationRepository.getNotificationsByType(
+                    'support_ticket',
+                  ),
                 ),
-                _buildNotificationsList(AdminNotificationRepository.getRecentNotifications()),
+                _buildNotificationsList(
+                  AdminNotificationRepository.getNotificationsByType(
+                    'reservation',
+                  ),
+                ),
+                _buildNotificationsList(
+                  AdminNotificationRepository.getRecentNotifications(),
+                ),
               ],
             ),
           ),
@@ -159,7 +168,12 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -204,16 +218,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.notifications_off,
-                  size: 64,
-                  color: AppTheme.grey,
-                ),
+                Icon(Icons.notifications_off, size: 64, color: AppTheme.grey),
                 SizedBox(height: 16),
-                Text(
-                  'No notifications found',
-                  style: AppTheme.bodyLarge,
-                ),
+                Text('No notifications found', style: AppTheme.bodyLarge),
               ],
             ),
           );
@@ -256,7 +263,9 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
                       const SizedBox(height: 4),
                       Text(
                         notification.body,
-                        style: AppTheme.bodyMedium.copyWith(color: AppTheme.grey),
+                        style: AppTheme.bodyMedium.copyWith(
+                          color: AppTheme.grey,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -269,11 +278,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: AppTheme.grey,
-                ),
+                Icon(Icons.access_time, size: 16, color: AppTheme.grey),
                 const SizedBox(width: 4),
                 Text(
                   '${notification.formattedDate} ${notification.formattedTime}',
@@ -360,7 +365,7 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
           Text(
             label,
             style: AppTheme.bodyMedium.copyWith(
-              color: color, 
+              color: color,
               fontWeight: FontWeight.w500,
               fontSize: 12,
             ),
@@ -376,14 +381,16 @@ class _AdminNotificationsScreenState extends State<AdminNotificationsScreen>
       runSpacing: 4,
       children: data.entries
           .where((entry) => entry.value.isNotEmpty)
-          .map((entry) => Chip(
-                label: Text(
-                  '${entry.key}: ${entry.value}',
-                  style: AppTheme.bodyMedium.copyWith(fontSize: 12),
-                ),
-                backgroundColor: AppTheme.grey.withOpacity(0.1),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ))
+          .map(
+            (entry) => Chip(
+              label: Text(
+                '${entry.key}: ${entry.value}',
+                style: AppTheme.bodyMedium.copyWith(fontSize: 12),
+              ),
+              backgroundColor: AppTheme.grey.withOpacity(0.1),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          )
           .toList(),
     );
   }

@@ -63,7 +63,10 @@ class NotificationService {
     try {
       final authUser = await FirebaseAuth.instance.currentUser;
       if (authUser != null) {
-        final doc = await _firestore.collection('users').doc(authUser.uid).get();
+        final doc = await _firestore
+            .collection('users')
+            .doc(authUser.uid)
+            .get();
         if (doc.exists) {
           return UserModel.fromMap(doc.data()!);
         }
@@ -86,10 +89,12 @@ class NotificationService {
 
       return snapshot.docs
           .map((doc) => UserModel.fromMap(doc.data()))
-          .where((user) => snapshot.docs
-              .firstWhere((doc) => doc.data()['uid'] == user.uid)
-              .data()
-              .containsKey('fcmToken'))
+          .where(
+            (user) => snapshot.docs
+                .firstWhere((doc) => doc.data()['uid'] == user.uid)
+                .data()
+                .containsKey('fcmToken'),
+          )
           .toList();
     } catch (e) {
       print('Error getting admin users: $e');
@@ -107,7 +112,7 @@ class NotificationService {
     for (final user in users) {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       final fcmToken = userDoc.data()?['fcmToken'] as String?;
-      
+
       if (fcmToken != null) {
         await _createNotificationDocument(
           fcmToken: fcmToken,
@@ -141,7 +146,9 @@ class NotificationService {
   }
 
   /// Notify admins about new support ticket
-  static Future<void> notifyAdminsAboutNewTicket(SupportTicketModel ticket) async {
+  static Future<void> notifyAdminsAboutNewTicket(
+    SupportTicketModel ticket,
+  ) async {
     try {
       final admins = await _getAdminUsers();
       if (admins.isEmpty) return;
@@ -163,7 +170,9 @@ class NotificationService {
   }
 
   /// Notify admins about support ticket update
-  static Future<void> notifyAdminsAboutTicketUpdate(SupportTicketModel ticket) async {
+  static Future<void> notifyAdminsAboutTicketUpdate(
+    SupportTicketModel ticket,
+  ) async {
     try {
       final admins = await _getAdminUsers();
       if (admins.isEmpty) return;
@@ -185,7 +194,9 @@ class NotificationService {
   }
 
   /// Notify admins about new reservation
-  static Future<void> notifyAdminsAboutNewReservation(ReservationModel reservation) async {
+  static Future<void> notifyAdminsAboutNewReservation(
+    ReservationModel reservation,
+  ) async {
     try {
       final admins = await _getAdminUsers();
       if (admins.isEmpty) return;
@@ -193,7 +204,8 @@ class NotificationService {
       await _sendNotificationToUsers(
         users: admins,
         title: 'New Reservation',
-        body: '${reservation.lecturerName} reserved ${reservation.classroomName} on ${reservation.formattedDate}',
+        body:
+            '${reservation.lecturerName} reserved ${reservation.classroomName} on ${reservation.formattedDate}',
         data: {
           'type': 'reservation',
           'action': 'created',
@@ -208,7 +220,9 @@ class NotificationService {
   }
 
   /// Notify admins about reservation update
-  static Future<void> notifyAdminsAboutReservationUpdate(ReservationModel reservation) async {
+  static Future<void> notifyAdminsAboutReservationUpdate(
+    ReservationModel reservation,
+  ) async {
     try {
       final admins = await _getAdminUsers();
       if (admins.isEmpty) return;
@@ -216,7 +230,8 @@ class NotificationService {
       await _sendNotificationToUsers(
         users: admins,
         title: 'Reservation Updated',
-        body: '${reservation.lecturerName} updated reservation for ${reservation.classroomName}',
+        body:
+            '${reservation.lecturerName} updated reservation for ${reservation.classroomName}',
         data: {
           'type': 'reservation',
           'action': 'updated',
@@ -259,7 +274,7 @@ class NotificationService {
   /// Navigate based on notification data
   static void _handleNotificationNavigation(Map<String, dynamic> data) {
     final type = data['type'] as String?;
-    
+
     switch (type) {
       case 'support_ticket':
         // Navigate to support tickets screen or specific ticket
