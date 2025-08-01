@@ -1,5 +1,6 @@
 import 'package:apiit_cms/features/auth/data/auth_repository.dart';
 import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
+import 'package:apiit_cms/features/class/presentation/screens/classes_screen.dart';
 import 'package:apiit_cms/features/home/presentation/screens/home_screen.dart';
 import 'package:apiit_cms/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apiit_cms/features/users/presentation/screens/user_management_screen.dart';
@@ -37,14 +38,14 @@ class _MainNavigationState extends State<MainNavigation> {
     if (_isAdmin) {
       return [
         const HomeScreen(),
-        const Center(child: Text('Classes')),
+        const ClassroomsScreen(),
         const UserManagementScreen(),
         const ProfileScreen(),
       ];
     } else {
       return [
         const HomeScreen(),
-        const Center(child: Text('Classes')),
+        const ClassroomsScreen(),
         const ProfileScreen(),
       ];
     }
@@ -56,7 +57,7 @@ class _MainNavigationState extends State<MainNavigation> {
         icon: Icon(Icons.home_outlined),
         label: 'Home',
       ),
-      const NavigationDestination(icon: Icon(Icons.desk), label: 'Classes'),
+      const NavigationDestination(icon: Icon(Icons.desk), label: 'Classrooms'),
     ];
 
     if (_isAdmin) {
