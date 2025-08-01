@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "69674030754",
+    "project_id": "apiit-cms",
+    "storage_bucket": "apiit-cms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:69674030754:android:cfd65a6a391f1bbf0f29fb",
+        "android_client_info": {
+          "package_name": "com.example.apiit_cms"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDItGh_mTvTIm2sSZWmIxzsmGElNsGFFC8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
