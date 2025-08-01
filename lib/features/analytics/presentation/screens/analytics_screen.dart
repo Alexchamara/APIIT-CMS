@@ -121,6 +121,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
                       child: TabBar(
                         controller: _tabController,
                         labelColor: AppTheme.primary,
+                        dividerColor: Colors.transparent,
                         unselectedLabelColor: AppTheme.textSecondary,
                         indicatorColor: AppTheme.primary,
                         tabs: const [

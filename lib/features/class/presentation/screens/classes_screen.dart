@@ -11,7 +11,9 @@ import 'package:apiit_cms/shared/widgets/custom_app_bar.dart';
 import 'package:flutter/material.dart';
 
 class ClassroomsScreen extends StatefulWidget {
-  const ClassroomsScreen({super.key});
+  final bool showAppBar;
+  
+  const ClassroomsScreen({super.key, this.showAppBar = true});
 
   @override
   State<ClassroomsScreen> createState() => _ClassroomsScreenState();
@@ -303,7 +305,7 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      appBar: AppBarStyles.primary(
+      appBar: widget.showAppBar ? AppBarStyles.primary(
         title: 'Classrooms',
         showBackButton: false,
         actions: [
@@ -331,7 +333,7 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
             ],
           ),
         ],
-      ),
+      ) : null,
       endDrawer: ClassroomFilterDrawer(
         filterOptions: _filterOptions,
         allClassrooms: _allClassrooms,

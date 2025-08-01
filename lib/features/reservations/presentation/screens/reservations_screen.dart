@@ -8,7 +8,9 @@ import 'package:apiit_cms/shared/theme.dart';
 import 'package:flutter/material.dart';
 
 class ReservationsScreen extends StatefulWidget {
-  const ReservationsScreen({super.key});
+  final bool showAppBar;
+  
+  const ReservationsScreen({super.key, this.showAppBar = true});
 
   @override
   State<ReservationsScreen> createState() => _ReservationsScreenState();
@@ -150,12 +152,12 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: widget.showAppBar ? AppBar(
         title: const Text('Reservations'),
         backgroundColor: AppTheme.primary,
         foregroundColor: AppTheme.white,
         elevation: 0,
-      ),
+      ) : null,
       body: Column(
         children: [
           // Search Bar

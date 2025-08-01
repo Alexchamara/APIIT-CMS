@@ -2,6 +2,7 @@ import 'package:apiit_cms/features/auth/data/auth_repository.dart';
 import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/class/presentation/screens/classes_screen.dart';
 import 'package:apiit_cms/features/reservations/presentation/screens/reservations_screen.dart';
+import 'package:apiit_cms/features/management/presentation/screens/management_screen.dart';
 import 'package:apiit_cms/features/support/presentation/screens/support_tickets_screen.dart';
 import 'package:apiit_cms/features/profile/presentation/screens/profile_screen.dart';
 import 'package:apiit_cms/features/users/presentation/screens/user_management_screen.dart';
@@ -39,10 +40,9 @@ class _MainNavigationState extends State<MainNavigation> {
   List<Widget> get _pages {
     if (_isAdmin) {
       return [
-        const ReservationsScreen(),
-        const ClassroomsScreen(),
-        const SupportTicketsScreen(),
         const AnalyticsScreen(),
+        const ManagementScreen(),
+        const SupportTicketsScreen(),
         const UserManagementScreen(),
         const ProfileScreen(),
       ];
@@ -57,41 +57,49 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   List<NavigationDestination> get _destinations {
-    final baseDestinations = [
-      const NavigationDestination(
-        icon: Icon(Icons.home_outlined),
-        label: 'Reservations',
-      ),
-      const NavigationDestination(icon: Icon(Icons.desk), label: 'Classrooms'),
-      const NavigationDestination(
-        icon: Icon(Icons.support_agent_outlined),
-        label: 'Support',
-      ),
-    ];
-
     if (_isAdmin) {
-      baseDestinations.add(
+      return [
         const NavigationDestination(
           icon: Icon(Icons.analytics_outlined),
           label: 'Analytics',
         ),
-      );
-      baseDestinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.business_center_outlined),
+          label: 'Management',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.support_agent_outlined),
+          label: 'Support',
+        ),
         const NavigationDestination(
           icon: Icon(Icons.people_alt_outlined),
           label: 'Users',
         ),
-      );
+        const NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          label: 'Me',
+        ),
+      ];
+    } else {
+      return [
+        const NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          label: 'Reservations',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.desk),
+          label: 'Classrooms',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.support_agent_outlined),
+          label: 'Support',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          label: 'Me',
+        ),
+      ];
     }
-
-    baseDestinations.add(
-      const NavigationDestination(
-        icon: Icon(Icons.person_outline),
-        label: 'Me',
-      ),
-    );
-
-    return baseDestinations;
   }
 
   @override
