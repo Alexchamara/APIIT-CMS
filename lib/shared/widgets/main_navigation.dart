@@ -1,5 +1,8 @@
+import 'package:apiit_cms/features/auth/data/auth_repository.dart';
+import 'package:apiit_cms/features/auth/domain/models/user_model.dart';
 import 'package:apiit_cms/features/home/presentation/screens/home_screen.dart';
 import 'package:apiit_cms/features/profile/presentation/screens/profile_screen.dart';
+import 'package:apiit_cms/features/users/presentation/screens/user_management_screen.dart';
 import 'package:flutter/material.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -12,14 +15,68 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   final PageController _pageController = PageController();
+  UserModel? _currentUser;
+  bool _isLoading = true;
 
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const Center(child: Text('Chat Page')),
-    const Center(child: Text('Forum Page')),
-    const Center(child: Text('Groups Page')),
-    const ProfileScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrentUser();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    _currentUser = await AuthRepository.getCurrentUserModel();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  bool get _isAdmin => _currentUser?.userType == UserType.admin;
+
+  List<Widget> get _pages {
+    if (_isAdmin) {
+      return [
+        const HomeScreen(),
+        const Center(child: Text('Classes')),
+        const UserManagementScreen(),
+        const ProfileScreen(),
+      ];
+    } else {
+      return [
+        const HomeScreen(),
+        const Center(child: Text('Classes')),
+        const ProfileScreen(),
+      ];
+    }
+  }
+
+  List<NavigationDestination> get _destinations {
+    final baseDestinations = [
+      const NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        label: 'Home',
+      ),
+      const NavigationDestination(icon: Icon(Icons.desk), label: 'Classes'),
+    ];
+
+    if (_isAdmin) {
+      baseDestinations.add(
+        const NavigationDestination(
+          icon: Icon(Icons.people_alt_outlined),
+          label: 'Users',
+        ),
+      );
+    }
+
+    baseDestinations.add(
+      const NavigationDestination(
+        icon: Icon(Icons.person_outline),
+        label: 'Me',
+      ),
+    );
+
+    return baseDestinations;
+  }
 
   @override
   void dispose() {
@@ -29,6 +86,10 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
@@ -38,19 +99,7 @@ class _MainNavigationState extends State<MainNavigation> {
             _pageController.jumpToPage(_currentIndex);
           });
         },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.chat_outlined), label: 'Chat'),
-          NavigationDestination(
-            icon: Icon(Icons.forum_outlined),
-            label: 'Forum',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.group_outlined),
-            label: 'Groups',
-          ),
-          NavigationDestination(icon: Icon(Icons.person_outline), label: 'Me'),
-        ],
+        destinations: _destinations,
       ),
       body: PageView(
         controller: _pageController,

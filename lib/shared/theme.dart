@@ -10,6 +10,7 @@ class AppTheme {
   static const Color grey = Color(0xFF9E9E9E);
   static const Color lightGrey = Color(0xFFF0F0F0);
   static const Color error = Color(0xFFE57373);
+  static const Color success = Color(0xFF4CAF50);
 
   // Text colors
   static const Color textPrimary = Color(0xFF2C2C2C);
@@ -118,6 +119,12 @@ class AppTheme {
           ),
           elevation: 0,
         ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primary,
+        foregroundColor: white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+        elevation: 4,
       ),
     );
   }
