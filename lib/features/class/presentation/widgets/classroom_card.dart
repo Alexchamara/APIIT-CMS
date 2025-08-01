@@ -150,9 +150,7 @@ class ClassroomCard extends StatelessWidget {
                       onPressed: onDelete,
                       icon: const Icon(Icons.delete),
                       label: const Text('Delete'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                      ),
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
                     ),
                   ],
                 ],

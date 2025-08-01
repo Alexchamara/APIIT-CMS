@@ -37,10 +37,7 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.wait([
-      _loadCurrentUser(),
-      _loadClassrooms(),
-    ]);
+    await Future.wait([_loadCurrentUser(), _loadClassrooms()]);
   }
 
   Future<void> _loadCurrentUser() async {
@@ -254,7 +251,7 @@ class _ClassroomsScreenState extends State<ClassroomsScreen> {
         builder: (context) => EditClassroomScreen(classroom: classroomModel),
       ),
     );
-    
+
     // If the edit was successful, reload the classrooms
     if (result == true) {
       await _loadClassrooms();
